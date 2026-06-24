@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caso contra a Shipoffers — Análise de Responsabilidade Logística</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --c1:#E24B4A;--c2:#378ADD;--c3:#1D9E75;--c4:#EF9F27;--c5:#888780;--c6:#7F77DD;
+  --c1l:#FCEBEB;--c1d:#791F1F;
+  --c2l:#E6F1FB;--c2d:#0C447C;
+  --c4l:#FAEEDA;--c4d:#633806;
+  --c3l:#E1F5EE;--c3d:#085041;
+  --bg:#FAFAF9;--bg2:#F1EFE8;--bg3:#fff;
+  --border:#D3D1C7;--border2:#B4B2A9;
+  --text:#2C2C2A;--text2:#5F5E5A;--text3:#888780;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1a18;--bg2:#242422;--bg3:#2c2c2a;
+    --border:#444441;--border2:#5F5E5A;
+    --text:#D3D1C7;--text2:#B4B2A9;--text3:#888780;
+    --c1l:#2d1515;--c1d:#F09797;
+    --c2l:#0c1e30;--c2d:#85B7EB;
+    --c4l:#2a1e08;--c4d:#FAC775;
+    --c3l:#0a2018;--c3d:#5DCAA5;
+  }
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.wrapper{max-width:1020px;margin:0 auto;padding:28px 20px}
+
+/* HEADER */
+.header{margin-bottom:28px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.header-eyebrow{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--c1);margin-bottom:6px}
+.header-title{font-size:22px;font-weight:700;letter-spacing:-.4px;margin-bottom:5px}
+.header-sub{font-size:12.5px;color:var(--text3);line-height:1.5;max-width:680px}
+.header-meta{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap}
+.header-tag{font-size:10.5px;font-weight:500;padding:4px 10px;border-radius:20px;background:var(--bg2);color:var(--text2);border:1px solid var(--border)}
+.header-tag.red{background:var(--c1l);color:var(--c1d);border-color:transparent}
+
+/* NAV */
+.nav{display:flex;gap:3px;margin-bottom:28px;background:var(--bg2);padding:4px;border-radius:12px;position:sticky;top:0;z-index:10}
+.nb{flex:1;padding:8px 6px;border:none;background:transparent;border-radius:9px;font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;transition:all .15s;text-align:center;line-height:1.35}
+.nb.active{background:var(--bg3);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.page{display:none}.page.active{display:block}
+
+/* KPI */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:22px}
+.kpi{border-radius:10px;padding:13px 14px}
+.kpi-r{background:var(--c1l)}.kpi-r .kl,.kpi-r .kv,.kpi-r .ks{color:var(--c1d)}
+.kpi-b{background:var(--c2l)}.kpi-b .kl,.kpi-b .kv,.kpi-b .ks{color:var(--c2d)}
+.kpi-a{background:var(--c4l)}.kpi-a .kl,.kpi-a .kv,.kpi-a .ks{color:var(--c4d)}
+.kpi-g{background:var(--c3l)}.kpi-g .kl,.kpi-g .kv,.kpi-g .ks{color:var(--c3d)}
+.kpi-gray{background:var(--bg2)}.kpi-gray .kl{color:var(--text3)}.kpi-gray .kv{color:var(--text)}.kpi-gray .ks{color:var(--text3)}
+.kl{font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;opacity:.8;margin-bottom:5px}
+.kv{font-size:21px;font-weight:700;line-height:1;letter-spacing:-.5px}
+.ks{font-size:10px;margin-top:4px;opacity:.65}
+
+/* LAYOUT */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.gap{margin-top:14px}
+
+/* SECTION */
+.sh{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.sh:not(:first-child){margin-top:18px}
+.sh-line{flex:1;height:1px;background:var(--border)}
+.sh-label{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);white-space:nowrap}
+
+/* CARD */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:15px 17px}
+
+/* TABLE ROW */
+.tr{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.tr:last-child{border-bottom:none}
+.tl{color:var(--text2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv{font-weight:600;text-align:right;white-space:nowrap}
+.tv-r{color:var(--c1)}.tv-a{color:var(--c4)}.tv-g{color:var(--c3)}
+
+/* BADGES */
+.bdg{font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle}
+.bdg-r{background:var(--c1l);color:var(--c1d)}
+.bdg-b{background:var(--c2l);color:var(--c2d)}
+.bdg-a{background:var(--c4l);color:var(--c4d)}
+.bdg-g{background:var(--c3l);color:var(--c3d)}
+.bdg-gray{background:var(--bg2);color:var(--text2)}
+
+/* BAR ROWS */
+.br{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11.5px}
+.br-label{flex:1;color:var(--text2);min-width:0;line-height:1.3}
+.br-track{width:80px;flex-shrink:0;background:var(--bg2);border-radius:3px;height:7px;overflow:hidden}
+.br-fill{height:100%;border-radius:3px}
+.br-val{min-width:58px;text-align:right;font-size:10.5px;font-weight:600}
+
+/* INSIGHT */
+.ib{border-left:3px solid;border-radius:0 8px 8px 0;padding:10px 13px;font-size:11.5px;line-height:1.65;margin-top:10px}
+.ib-r{background:var(--c1l);color:var(--c1d);border-color:var(--c1)}
+.ib-b{background:var(--c2l);color:var(--c2d);border-color:var(--c2)}
+.ib-a{background:var(--c4l);color:var(--c4d);border-color:var(--c4)}
+.ib-g{background:var(--c3l);color:var(--c3d);border-color:var(--c3)}
+.ib-gray{background:var(--bg2);color:var(--text2);border-color:var(--border2)}
+
+/* PRODUCT BAR */
+.pb{display:flex;align-items:center;gap:9px;margin-bottom:7px;font-size:11.5px}
+.pb-label{min-width:96px;color:var(--text2);flex-shrink:0}
+.pb-track{flex:1;background:var(--bg2);border-radius:3px;height:9px;overflow:hidden}
+.pb-fill{height:100%;border-radius:3px}
+.pb-val{min-width:64px;text-align:right;font-size:10.5px;font-weight:600}
+
+/* CHART */
+.ch{position:relative;width:100%}
+
+/* TIMELINE */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-step{display:grid;grid-template-columns:90px 24px 1fr;gap:0 14px;align-items:stretch;min-height:60px}
+.tl-week{padding:12px 0 0;text-align:right}
+.tl-week-label{font-size:11px;font-weight:600;color:var(--text2)}
+.tl-week-sub{font-size:9.5px;color:var(--text3);margin-top:2px}
+.tl-spine{display:flex;flex-direction:column;align-items:center}
+.tl-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:12px;border:2.5px solid var(--bg3);box-shadow:0 0 0 2px currentColor;z-index:1}
+.tl-line{flex:1;width:2px;background:var(--border)}
+.tl-step:last-child .tl-line{display:none}
+.tl-content{padding:10px 0 16px}
+.tl-title{font-size:12.5px;font-weight:600;margin-bottom:4px}
+.tl-desc{font-size:11.5px;color:var(--text2);line-height:1.6}
+.tl-kpis{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.tl-kpi{font-size:10.5px;font-weight:500;padding:3px 9px;border-radius:5px;background:var(--bg2);color:var(--text2)}
+.tl-kpi.red{background:var(--c1l);color:var(--c1d)}
+.tl-kpi.amber{background:var(--c4l);color:var(--c4d)}
+.tl-kpi.blue{background:var(--c2l);color:var(--c2d)}
+.tl-kpi.green{background:var(--c3l);color:var(--c3d)}
+
+/* CONTRACT CLAUSES */
+.clause{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:var(--bg3)}
+.clause-ref{font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+.clause-text{font-size:11.5px;color:var(--text2);line-height:1.65;font-style:italic;border-left:3px solid var(--border2);padding-left:12px;margin-bottom:8px}
+.clause-counter{font-size:11.5px;color:var(--c1d);line-height:1.65;padding:8px 10px;background:var(--c1l);border-radius:6px}
+
+/* ARGUMENT CARDS */
+.arg{border-radius:10px;padding:14px 16px;border:1px solid var(--border);background:var(--bg3);margin-bottom:10px;border-left:4px solid}
+.arg-num{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-bottom:7px}
+.arg-title{font-size:13px;font-weight:600;margin-bottom:6px}
+.arg-body{font-size:11.5px;color:var(--text2);line-height:1.65}
+.arg-evidence{margin-top:8px;padding:7px 10px;border-radius:6px;font-size:11px;font-weight:500}
+
+/* DOT LEGEND */
+.dot-leg{display:flex;flex-wrap:wrap;gap:10px;font-size:10.5px;color:var(--text2)}
+.dl-item{display:flex;align-items:center;gap:4px}
+.dl-sq{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-eyebrow">Dossiê de Responsabilidade Contratual</div>
+  <div class="header-title">Por que a Shipoffers não pode se isentar — O caso contra a cláusula 2.2</div>
+  <div class="header-sub">Análise cronológica da escala de gastos com a Shipoffers, correlacionada com o aumento de reembolsos logísticos no BreathEaseX — produto líquido — em contraste com produtos em cápsula que não apresentaram falha de entrega em escala equivalente.</div>
+  <div class="header-meta">
+    <span class="header-tag red">$463.432 pagos à Shipoffers — 60 dias</span>
+    <span class="header-tag red">$22.835 em perdas logísticas documentadas</span>
+    <span class="header-tag">Contrato vigente: 01/07/2026</span>
+    <span class="header-tag">Ref. Doc LVGVS-FVMMY-YJR4Y-JWGNK</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nb active" onclick="goTo(0)">Cronologia de Gastos</button>
+  <button class="nb" onclick="goTo(1)">Líquido vs Cápsula</button>
+  <button class="nb" onclick="goTo(2)">Contrato × Realidade</button>
+  <button class="nb" onclick="goTo(3)">Argumentação Final</button>
+</div>
+
+<!-- ======= PAGE 0: SPENDING TIMELINE ======= -->
+<div class="page active" id="p0">
+  <div class="kpi-strip">
+    <div class="kpi kpi-r"><div class="kl">Total pago à Shipoffers</div><div class="kv">$463.432</div><div class="ks">60 dias · 8 semanas</div></div>
+    <div class="kpi kpi-r"><div class="kl">BEX — gasto 60 dias</div><div class="kv">$176.059</div><div class="ks">38% do total pago</div></div>
+    <div class="kpi kpi-a"><div class="kl">BEX — crescimento</div><div class="kv">+7.041%</div><div class="ks">de $1.356 a $96.813/sem</div></div>
+    <div class="kpi kpi-b"><div class="kl">BEX — % do total jun</div><div class="kv">61,5%</div><div class="ks">$160.987 em junho</div></div>
+    <div class="kpi kpi-gray"><div class="kl">Perda logística BEX</div><div class="kv">$6.763</div><div class="ks">3,84% do gasto BEX</div></div>
+  </div>
+
+  <div class="sh"><div class="sh-label">Evolução semanal de gasto — BEX vs demais produtos</div><div class="sh-line"></div></div>
+  <div class="card">
+    <div class="ch" style="height:220px"><canvas id="spendChart" role="img" aria-label="Evolução semanal de gasto BEX vs outros"></canvas></div>
+    <div class="dot-leg" style="margin-top:10px;justify-content:center">
+      <div class="dl-item"><div class="dl-sq" style="background:#E24B4A"></div>BreathEaseX (líquido)</div>
+      <div class="dl-item"><div class="dl-sq" style="background:#B5D4F4"></div>Demais produtos (cápsula/outros)</div>
+    </div>
+    <div class="ib ib-r" style="margin-top:12px"><strong>BEX partiu de zero e em 8 semanas tornou-se 75,7% de toda a operação Shipoffers.</strong> Nenhum outro produto cresceu nessa proporção no mesmo período. Isso significa que a Shipoffers estava sendo remunerada crescentemente para operar um produto único — e as falhas cresceram na mesma proporção.</div>
+  </div>
+
+  <div class="sh"><div class="sh-label">Cronologia argumental — gasto ↔ falha logística</div><div class="sh-line"></div></div>
+  <div class="timeline">
+
+    <div class="tl-step">
+      <div class="tl-week"><div class="tl-week-label">04–10/05</div><div class="tl-week-sub">Semana 1 BEX</div></div>
+      <div class="tl-spine"><div class="tl-dot" style="color:var(--c3)"></div><div class="tl-line"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">Início das operações BEX com a Shipoffers</div>
+        <div class="tl-desc">Primeiro lançamento do BreathEaseX. Gasto inicial de $1.356 na semana. Shipoffers recebe produto, rotula e executa os primeiros fulfillments. Sem registros de reembolso logístico nesta semana.</div>
+        <div class="tl-kpis"><span class="tl-kpi green">Gasto: $1.356</span><span class="tl-kpi">Falha logística: ~$0</span><span class="tl-kpi">BEX: 3,6% do total</span></div>
+      </div>
+    </div>
+
+    <div class="tl-step">
+      <div class="tl-week"><div class="tl-week-label">11–31/05</div><div class="tl-week-sub">Sem 2–4</div></div>
+      <div class="tl-spine"><div class="tl-dot" style="color:var(--c4)"></div><div class="tl-line"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">Escalonamento acelerado — primeiros sinais de falha</div>
+        <div class="tl-desc">Gasto BEX cresce de $2.570 → $3.173 → $7.974 em três semanas (+210% acumulado). Os primeiros reembolsos logísticos do BEX começam a aparecer em maio: $294 em "produto chegou defeituoso" — um evento impossível para embalagens plásticas de cápsulas, mas altamente provável para produtos líquidos sem vedação adequada.</div>
+        <div class="tl-kpis"><span class="tl-kpi amber">Gasto acum.: $13.717</span><span class="tl-kpi red">Log. maio BEX: $294</span><span class="tl-kpi">BEX: ~5–22% semanal</span></div>
+      </div>
+    </div>
+
+    <div class="tl-step">
+      <div class="tl-week"><div class="tl-week-label">01–07/06</div><div class="tl-week-sub">Semana 5</div></div>
+      <div class="tl-spine"><div class="tl-dot" style="color:var(--c4)"></div><div class="tl-line"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">Ponto de inflexão — BEX já é 39,7% da operação</div>
+        <div class="tl-desc">Gasto semanal salta para $24.061 (+202% vs semana anterior). A Shipoffers está operando o BEX como produto dominante do portfólio. Nessa semana o volume de fulfillments de BEX ultrapassa todos os outros produtos somados. As falhas logísticas começam a acumular.</div>
+        <div class="tl-kpis"><span class="tl-kpi red">Gasto semana: $24.061</span><span class="tl-kpi red">BEX: 39,7% do total pago</span><span class="tl-kpi amber">Defect. começam a subir</span></div>
+      </div>
+    </div>
+
+    <div class="tl-step">
+      <div class="tl-week"><div class="tl-week-label">08–14/06</div><div class="tl-week-sub">Semana 6</div></div>
+      <div class="tl-spine"><div class="tl-dot" style="color:var(--c1)"></div><div class="tl-line"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">Explosão de volume — falha operacional identificada</div>
+        <div class="tl-desc">$40.113 na semana (+67%). BEX representa agora 54,6% de toda a operação. É matematicamente impossível que falhas logísticas nessa semana sejam causas exógenas: o transportador não mudou, o clima não mudou. O que mudou foi o volume de um produto específico — líquido — sendo processado por uma operação que claramente não estava preparada para essa escala com esse tipo de produto.</div>
+        <div class="tl-kpis"><span class="tl-kpi red">Gasto: $40.113</span><span class="tl-kpi red">BEX: 54,6% do total</span><span class="tl-kpi red">"Defective" BEX: $5.636 em jun</span></div>
+      </div>
+    </div>
+
+    <div class="tl-step">
+      <div class="tl-week"><div class="tl-week-label">15–21/06</div><div class="tl-week-sub">Semana 7 · Pico</div></div>
+      <div class="tl-spine"><div class="tl-dot" style="color:var(--c1)"></div><div class="tl-line"></div></div>
+      <div class="tl-content">
+        <div class="tl-title" style="color:var(--c1)">PICO — $96.813 em uma semana · BEX é 75,7% da operação</div>
+        <div class="tl-desc">A semana mais cara da história da operação. BEX representa 75,7% de todo o pagamento à Shipoffers. Na semana seguinte (23/06), o pior dia histórico de reembolsos foi registrado — com "produto chegou defeituoso" e "produto errado" aparecendo em 5 casos específicos de BEX e NervoLyn dentro de 8–15 dias do pedido, janela exata de entrega. A concentração de falhas logísticas no mês de maior volume não é coincidência.</div>
+        <div class="tl-kpis"><span class="tl-kpi red">Gasto: $96.813</span><span class="tl-kpi red">BEX: 75,7% do total pago</span><span class="tl-kpi red">Pior dia: 23/06</span><span class="tl-kpi amber">Log. jun total: $10.364</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="sh"><div class="sh-label">Gasto por produto — 60 dias (todos os produtos Shipoffers)</div><div class="sh-line"></div></div>
+  <div class="card">
+    <div class="pb"><div class="pb-label">BreathEaseX <span class="bdg bdg-r">LÍQUIDO</span></div><div class="pb-track"><div class="pb-fill" style="width:100%;background:var(--c1)"></div></div><div class="pb-val" style="color:var(--c1)">$176.059</div></div>
+    <div class="pb"><div class="pb-label">AudiLeaf <span class="bdg bdg-g">CÁPSULA</span></div><div class="pb-track"><div class="pb-fill" style="width:42%;background:var(--c2)"></div></div><div class="pb-val">$74.261</div></div>
+    <div class="pb"><div class="pb-label">NervoLyn <span class="bdg bdg-g">CÁPSULA</span></div><div class="pb-track"><div class="pb-fill" style="width:35%;background:var(--c2)"></div></div><div class="pb-val">$61.109</div></div>
+    <div class="pb"><div class="pb-label">Prostafense <span class="bdg bdg-g">CÁPSULA</span></div><div class="pb-track"><div class="pb-fill" style="width:23%;background:var(--c5)"></div></div><div class="pb-val">$41.217</div></div>
+    <div class="pb"><div class="pb-label">GlucoRecover <span class="bdg bdg-g">CÁPSULA</span></div><div class="pb-track"><div class="pb-fill" style="width:16%;background:var(--c5)"></div></div><div class="pb-val">$28.569</div></div>
+    <div class="pb"><div class="pb-label">Visium Pro <span class="bdg bdg-g">CÁPSULA</span></div><div class="pb-track"><div class="pb-fill" style="width:16%;background:var(--c5)"></div></div><div class="pb-val">$27.590</div></div>
+  </div>
+</div>
+
+<!-- ======= PAGE 1: LIQUID vs CAPSULE ======= -->
+<div class="page" id="p1">
+  <div class="kpi-strip">
+    <div class="kpi kpi-r"><div class="kl">Defeituoso BEX (jun)</div><div class="kv">+1.817%</div><div class="ks">maio: $294 → jun: $5.636</div></div>
+    <div class="kpi kpi-g"><div class="kl">Defeituoso cápsulas (jun)</div><div class="kv">~$0</div><div class="ks">sem "defective" em escala</div></div>
+    <div class="kpi kpi-a"><div class="kl">BEX log. rate</div><div class="kv">3,84%</div><div class="ks">do gasto → reembolso log.</div></div>
+    <div class="kpi kpi-b"><div class="kl">Cápsula log. rate</div><div class="kv">~0,3%</div><div class="ks">defective quase zero</div></div>
+    <div class="kpi kpi-gray"><div class="kl">Diferença relativa</div><div class="kv">12,8×</div><div class="ks">BEX mais problemático</div></div>
+  </div>
+
+  <div class="sh"><div class="sh-label">Comparativo: falha logística "defeituoso" — líquido vs cápsula</div><div class="sh-line"></div></div>
+  <div class="card">
+    <div class="ch" style="height:220px"><canvas id="defectChart" role="img" aria-label="Comparativo defeituoso líquido vs cápsula por mês"></canvas></div>
+    <div class="dot-leg" style="margin-top:10px;justify-content:center">
+      <div class="dl-item"><div class="dl-sq" style="background:#E24B4A"></div>BEX (produto líquido)</div>
+      <div class="dl-item"><div class="dl-sq" style="background:#1D9E75"></div>Cápsulas (AudiLeaf, NervoLyn, Prostafense, VisiumPro, etc.)</div>
+    </div>
+    <div class="ib ib-r">A curva de "produto chegou defeituoso" no BEX sobe em proporção direta com o volume de fulfillment. Em produtos de cápsula — mesmo os que cresceram em volume — a taxa permanece residual. Isso é evidência direta de que o problema é <strong>operacional e específico ao produto líquido</strong>, não um problema de transporte geral.</div>
+  </div>
+
+  <div class="sh"><div class="sh-label">Perda logística vs gasto com Shipoffers por produto</div><div class="sh-line"></div></div>
+  <div class="two">
+    <div class="card">
+      <div style="font-size:12px;font-weight:600;margin-bottom:12px;color:var(--text2)">Perda logística como % do gasto com Shipoffers</div>
+      <div class="br"><span class="br-label">VisiumPro (cápsula)</span><div class="br-track"><div class="br-fill" style="width:100%;background:var(--c4)"></div></div><span class="br-val" style="color:var(--c4)">10,67%</span></div>
+      <div class="br"><span class="br-label">Prostafense (cápsula)</span><div class="br-track"><div class="br-fill" style="width:80%;background:var(--c4)"></div></div><span class="br-val" style="color:var(--c4)">8,53%</span></div>
+      <div class="br"><span class="br-label">AudiLeaf (cápsula)</span><div class="br-track"><div class="br-fill" style="width:46%;background:var(--c2)"></div></div><span class="br-val">4,96%</span></div>
+      <div class="br"><span class="br-label">GlucoRecover (cápsula)</span><div class="br-track"><div class="br-fill" style="width:46%;background:var(--c2)"></div></div><span class="br-val">4,92%</span></div>
+      <div class="br"><span class="br-label">BreathEaseX (líquido)</span><div class="br-track"><div class="br-fill" style="width:36%;background:var(--c1)"></div></div><span class="br-val" style="color:var(--c1)">3,84%</span></div>
+      <div class="br"><span class="br-label">NervoLyn (cápsula)</span><div class="br-track"><div class="br-fill" style="width:35%;background:var(--c3)"></div></div><span class="br-val">3,69%</span></div>
+      <div class="ib ib-b" style="margin-top:8px">O BEX tem uma taxa de perda logística na média geral — mas em <strong>termos absolutos e de crescimento mês a mês, é o único produto que explodiu</strong>. Os outros têm taxa alta mas volume contido; o BEX combina alta taxa com volume 2–4× maior.</div>
+    </div>
+    <div>
+      <div class="sh" style="margin-top:0"><div class="sh-label">Por que produto líquido falha diferente</div><div class="sh-line"></div></div>
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-size:12.5px;font-weight:600;margin-bottom:10px">Cápsula — processo de fulfillment</div>
+        <div style="font-size:11.5px;color:var(--text2);line-height:1.7">
+          ✓ Embalagem rígida (pote plástico / frasco âmbar)<br>
+          ✓ Sem risco de vazamento em trânsito<br>
+          ✓ Insensível à pressão de manuseio<br>
+          ✓ Vedação simples por tampa rosqueada<br>
+          ✓ Tolerante a variações de temperatura<br>
+          ✓ Risco de "defeituoso" ≈ nulo em logística
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--c1);border-width:1.5px">
+        <div style="font-size:12.5px;font-weight:600;margin-bottom:10px;color:var(--c1)">BreathEaseX — produto líquido</div>
+        <div style="font-size:11.5px;color:var(--text2);line-height:1.7">
+          ⚠ Spray / líquido — requer vedação hermética<br>
+          ⚠ Risco de vazamento se mal vedado ou danificado<br>
+          ⚠ Sensível a pressão e temperatura no transporte<br>
+          ⚠ Manuseio incorreto no packing → fuga<br>
+          ⚠ "Tops on the liquid" = vedação defeituosa de origem<br>
+          ⚠ Responsabilidade de packing = <strong>Shipoffers</strong>
+        </div>
+      </div>
+      <div class="ib ib-r"><strong>"Tops on the liquid"</strong> (tampa solta sobre o líquido) foi um dos motivos de reembolso registrados — isso é falha de embalagem no processo de packing da Shipoffers, não falha do transportador.</div>
+    </div>
+  </div>
+
+  <div class="sh"><div class="sh-label">Análise: o que "produto chegou defeituoso" implica para produto líquido</div><div class="sh-line"></div></div>
+  <div class="card">
+    <div class="ch" style="height:190px"><canvas id="timelineDefChart" role="img" aria-label="Evolução temporal defeitos líquido vs cápsula"></canvas></div>
+    <div class="dot-leg" style="margin-top:10px;justify-content:center">
+      <div class="dl-item"><div class="dl-sq" style="background:#E24B4A"></div>BEX "defeituoso"</div>
+      <div class="dl-item"><div class="dl-sq" style="background:#378ADD"></div>Gasto BEX (escala $10k)</div>
+      <div class="dl-item"><div class="dl-sq" style="background:#1D9E75"></div>Cápsulas "defeituoso"</div>
+    </div>
+    <div class="ib ib-a">Correlação direta entre gasto com BEX e casos de "defeituoso": quando o volume de fulfillment cresce, as falhas crescem proporcionalmente. Em cápsulas, mesmo com volumes maiores em meses anteriores, a taxa de "defeituoso" nunca explodiu. Isso prova que a causa é o <strong>processo de packing do produto líquido</strong> — responsabilidade exclusiva da Shipoffers conforme cláusula 2(C) do Appendix A.</div>
+  </div>
+</div>
+
+<!-- ======= PAGE 2: CONTRACT vs REALITY ======= -->
+<div class="page" id="p2">
+  <div class="kpi-strip">
+    <div class="kpi kpi-r"><div class="kl">Cláusula invocada por eles</div><div class="kv">Art. 2.2</div><div class="ks">"erros de shipping causados por mistakes deles serão reenviados"</div></div>
+    <div class="kpi kpi-b"><div class="kl">Nossa resposta</div><div class="kv">Art. 1.6</div><div class="ks">"commercially reasonable manner"</div></div>
+    <div class="kpi kpi-b"><div class="kl">Nosso argumento</div><div class="kv">App. A §2C</div><div class="ks">packing é responsabilidade deles</div></div>
+    <div class="kpi kpi-a"><div class="kl">Art. 5.1 — cap</div><div class="kv">limitado</div><div class="ks">mas não exclui negligência</div></div>
+    <div class="kpi kpi-gray"><div class="kl">Governing law</div><div class="kv">Colorado</div><div class="ks">Art. 7.3 — lei estadual</div></div>
+  </div>
+
+  <div class="sh"><div class="sh-label">Cláusulas do contrato × nossos contra-argumentos</div><div class="sh-line"></div></div>
+
+  <div class="clause">
+    <div class="clause-ref">Art. 2.2 — Alegação da Shipoffers para se isentar</div>
+    <div class="clause-text">"ShipOffers shall not be responsible for (i) any errors in shipping caused by improper addresses or mistakes provided by Client; and (ii) any late or undelivered shipments caused by customs or any shipping provider. Any errors in shipping caused by mistakes of ShipOffers will be reshipped at no additional charge to Client."</div>
+    <div class="clause-counter">
+      <strong>Contra-argumento:</strong> Esta cláusula exclui responsabilidade por erros do transportador externo e erros causados pelo Cliente. Não exclui falhas operacionais da própria Shipoffers no packing. "Produto chegou defeituoso" (leaked, tops on liquid) e "produto errado enviado" são erros de packing — não erros do transportador. A própria cláusula reconhece que erros da Shipoffers devem ser corrigidos: "reshipped at no additional charge." Eles oferecem reenvio, mas nós já reembolsamos o cliente — o custo é nosso.
+    </div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-ref">Art. 1.6 — Obrigação de desempenho razoável (nosso argumento)</div>
+    <div class="clause-text">"ShipOffers hereby covenants and agrees that it shall, during the term of this Agreement, perform the Services in a commercially reasonable manner. ShipOffers further covenants and agrees that it shall maintain reasonably accurate records and accounts of all transactions relating to the Services performed pursuant to this Agreement."</div>
+    <div class="clause-counter">
+      <strong>Argumento:</strong> Processar um produto líquido sem vedação adequada não é "commercially reasonable manner." A taxa de "defeituoso" crescendo +1.817% em um mês, correlacionada diretamente com o volume de fulfillment de um único produto, é evidência de falha sistemática no processo — não evento isolado. Se fosse razoável, a taxa permaneceria estável independente do volume.
+    </div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-ref">Appendix A, §2 — Definição dos serviços prestados</div>
+    <div class="clause-text">"B. ShipOffers shall place labeling on the Product as instructed by Client. C. Upon ShipOffers' receipt of proper instructions for fulfillment from Client for any particular customer order, ShipOffers shall perform all packing, shipping and tracking functions necessary to fulfill the order and ship Product."</div>
+    <div class="clause-counter">
+      <strong>Argumento central:</strong> O packing é responsabilidade explícita e contratual da Shipoffers — item C do Appendix A. "Product arrived defective" em produto líquido = falha de packing. "Wrong product received" = falha de picking/packing. Ambos estão dentro do escopo de responsabilidade deles, não do transportador. Eles assinaram que farão "all packing functions."
+    </div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-ref">Art. 1.4 — Return Instructions (tentativa de isenção adicional)</div>
+    <div class="clause-text">"ShipOffers will sort any returns to the best of its ability to inspect safety seals and determine which bottles can be resold. To do this, ShipOffers may charge Client a flat fee per return. ShipOffers accepts no liability for its performance of these services."</div>
+    <div class="clause-counter">
+      <strong>Limitação desta cláusula:</strong> A isenção aqui é específica para o processo de inspeção e classificação de devoluções — não para as falhas que causaram as devoluções. Não pode ser interpretada como isenção geral de responsabilidade por defeitos de packing. Além disso, se os produtos chegaram defeituosos por falha de embalagem, a responsabilidade antecede a devolução.
+    </div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-ref">Art. 5.1 — Limitação de Responsabilidade (o escudo deles)</div>
+    <div class="clause-text">"IT IS UNDERSTOOD AND AGREED THAT SHIPOFFERS' LIABILITY WHETHER IN CONTRACT, IN TORT, UNDER ANY WARRANTY, IN NEGLIGENCE OR OTHERWISE SHALL NOT EXCEED THE RETURN OF THE AMOUNT OF THE PURCHASE PRICE PAID BY CUSTOMER FOR SUCH SPECIFIC SERVICE OR PRODUCT..."</div>
+    <div class="clause-counter">
+      <strong>Contra-argumento:</strong> Esta cláusula limita danos consequenciais, mas não elimina a obrigação de reembolso pelo valor direto das falhas de packing. O valor dos reembolsos logísticos documentados ($22.835) representa o custo direto causado por falhas dentro do escopo do Art. 1.6 + Appendix A §2C. A limitação de responsabilidade não converte falha operacional comprovada em responsabilidade do Cliente.
+    </div>
+  </div>
+
+  <div class="sh"><div class="sh-label">Linha do tempo contratual</div><div class="sh-line"></div></div>
+  <div class="card">
+    <div class="ch" style="height:140px"><canvas id="contractChart" role="img" aria-label="Linha do tempo contratual e crescimento de gasto"></canvas></div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:6px;padding:0 4px">
+      <span>Contrato assinado: 07/01/2026</span>
+      <span>Início BEX: 04/05/2026</span>
+      <span>Pico falhas: jun/2026</span>
+      <span>Hoje: 24/06/2026</span>
+    </div>
+    <div class="ib ib-b">O contrato foi firmado em janeiro de 2026. O BreathEaseX só entrou na operação em maio — 4 meses depois. A Shipoffers <strong>aceitou operar este produto</strong> sem reservas contratuais sobre seu formato líquido. Não há aditivo ou ressalva sobre limitações para produtos líquidos. Ao aceitar o produto sem modificar o contrato, assumiram os mesmos padrões de serviço do Appendix A §2C.</div>
+  </div>
+</div>
+
+<!-- ======= PAGE 3: FINAL ARGUMENT ======= -->
+<div class="page" id="p3">
+  <div class="kpi-strip">
+    <div class="kpi kpi-r"><div class="kl">Argumento central</div><div class="kv">3 provas</div><div class="ks">cronológica · comparativa · contratual</div></div>
+    <div class="kpi kpi-r"><div class="kl">Valor reivindicável</div><div class="kv">$22.835</div><div class="ks">reembolsos logísticos documentados</div></div>
+    <div class="kpi kpi-a"><div class="kl">Evidências formais</div><div class="kv">CBs reais</div><div class="ks">registros de operadora de cartão</div></div>
+    <div class="kpi kpi-b"><div class="kl">Prazo rescisão</div><div class="kv">30 dias</div><div class="ks">aviso prévio Art. 4.1</div></div>
+    <div class="kpi kpi-gray"><div class="kl">Posição recomendada</div><div class="kv">Negociar</div><div class="ks">antes de acionar Art. 4.1</div></div>
+  </div>
+
+  <div class="sh"><div class="sh-label">Os três pilares do argumento</div><div class="sh-line"></div></div>
+
+  <div class="arg" style="border-color:var(--c1)">
+    <div class="arg-num" style="background:var(--c1l);color:var(--c1d)">PILAR 1 — PROVA CRONOLÓGICA</div>
+    <div class="arg-title">As falhas cresceram na proporção exata do volume de BEX processado pela Shipoffers</div>
+    <div class="arg-body">De 04/05 a 15/06, o gasto semanal com BEX cresceu de $1.356 para $96.813 (+7.041%). No mesmo período, os reembolsos por "produto chegou defeituoso" no BEX foram de $294 (maio) para $5.636 (junho) — crescimento de +1.817%. Se o problema fosse do transportador ou de causas externas, todos os produtos teriam apresentado aumento proporcional de falhas. AudiLeaf, NervoLyn e Prostafense — mesmos transportadores, mesma operação — não apresentaram crescimento equivalente. O problema é específico ao processo de fulfillment do BEX.</div>
+    <div class="arg-evidence" style="background:var(--c1l);color:var(--c1d)">Evidência: dados semanais de gasto × dados de reembolso dos arquivos Refund_2_meses.xlsx e SALESBOUND_LAST_60_DAYS.xlsx</div>
+  </div>
+
+  <div class="arg" style="border-color:var(--c4)">
+    <div class="arg-num" style="background:var(--c4l);color:var(--c4d)">PILAR 2 — PROVA COMPARATIVA</div>
+    <div class="arg-title">Produto líquido vs cápsula: o único diferencial operacional é o tipo de produto</div>
+    <div class="arg-body">Todos os produtos do portfólio usam a mesma Shipoffers, os mesmos transportadores e o mesmo cliente (WW Growth USA LLC). A diferença entre BEX e os outros é o formato: líquido vs cápsula sólida. Produtos líquidos requerem vedação hermética no packing — processo cujo responsável contratual é explicitamente a Shipoffers (Appendix A §2C). "Tops on the liquid" e "arrived defective" em produto líquido só ocorrem por falha na etapa de packing — antes que o transportador sequer toque no produto. Os produtos em cápsula, mesmo com volume alto (AudiLeaf $74k, NervoLyn $61k), não apresentaram casos de "defeituoso" em escala.</div>
+    <div class="arg-evidence" style="background:var(--c4l);color:var(--c4d)">Evidência: motivos de reembolso classificados + comparativo por tipo de produto + texto literal "tops on the liquid" nos dados de refund</div>
+  </div>
+
+  <div class="arg" style="border-color:var(--c2)">
+    <div class="arg-num" style="background:var(--c2l);color:var(--c2d)">PILAR 3 — PROVA CONTRATUAL</div>
+    <div class="arg-title">O contrato atribui packing à Shipoffers e exige desempenho razoável — sem ressalvas para líquidos</div>
+    <div class="arg-body">O Appendix A §2C é explícito: "ShipOffers shall perform all packing, shipping and tracking functions." O Art. 1.6 exige "commercially reasonable manner." A isenção do Art. 2.2 cobre apenas erros do transportador externo e erros de endereço fornecidos pelo Cliente — não falhas de packing. A Shipoffers aceitou o BreathEaseX na operação em maio/2026 sem qualquer aditivo contratual reservando limitações para produtos líquidos. Ao aceitar, comprometeu-se com os mesmos padrões de serviço. A cláusula de limitação de responsabilidade (Art. 5.1) limita danos consequenciais, mas não elimina a obrigação de reparação por falha operacional direta e documentada.</div>
+    <div class="arg-evidence" style="background:var(--c2l);color:var(--c2d)">Evidência: contrato Doc Ref LVGVS-FVMMY-YJR4Y-JWGNK, Appendix A §2C, Art. 1.6, Art. 2.2 + ausência de aditivo para produtos líquidos</div>
+  </div>
+
+  <div class="sh"><div class="sh-label">O que pedir na negociação</div><div class="sh-line"></div></div>
+  <div class="two">
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px">Reivindicação mínima</div>
+      <div class="tr"><span class="tl">Reembolso de perdas logísticas documentadas</span><span class="tv tv-r">$22.835</span></div>
+      <div class="tr"><span class="tl">Crédito em invoice futura por falhas de packing BEX</span><span class="tv tv-a">a negociar</span></div>
+      <div class="tr"><span class="tl">SLA escrito para produtos líquidos</span><span class="tv">obrigatório</span></div>
+      <div class="tr"><span class="tl">Auditoria de processo de packing BEX</span><span class="tv">imediato</span></div>
+      <div class="ib ib-r" style="margin-top:10px">Se recusarem: notificar rescisão com 30 dias de antecedência conforme Art. 4.1, preservando o direito de reparação por inadimplemento do Art. 1.6.</div>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px">Documentação a apresentar</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:11.5px;color:var(--text2);line-height:1.6">
+        <div style="display:flex;gap:8px"><span style="color:var(--c3);font-weight:600;flex-shrink:0">✓</span>Tabela de gastos semanais por produto (SALESBOUND)</div>
+        <div style="display:flex;gap:8px"><span style="color:var(--c3);font-weight:600;flex-shrink:0">✓</span>143 casos de reembolso logístico com motivo explícito</div>
+        <div style="display:flex;gap:8px"><span style="color:var(--c3);font-weight:600;flex-shrink:0">✓</span>Chargebacks com razão "not received" e "defective" — registros formais de operadora</div>
+        <div style="display:flex;gap:8px"><span style="color:var(--c3);font-weight:600;flex-shrink:0">✓</span>Curva de crescimento BEX × curva de falhas (gráfico deste relatório)</div>
+        <div style="display:flex;gap:8px"><span style="color:var(--c3);font-weight:600;flex-shrink:0">✓</span>Comparativo cápsula vs líquido sem ressalva contratual</div>
+        <div style="display:flex;gap:8px"><span style="color:var(--c3);font-weight:600;flex-shrink:0">✓</span>Texto literal "tops on the liquid" nos dados de refund</div>
+        <div style="display:flex;gap:8px"><span style="color:var(--c3);font-weight:600;flex-shrink:0">✓</span>Contrato assinado (Doc Ref LVGVS) sem aditivo para líquidos</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sh"><div class="sh-label">Síntese final — o argumento em uma frase</div><div class="sh-line"></div></div>
+  <div class="card" style="border-color:var(--c1);border-width:1.5px;border-left:4px solid var(--c1)">
+    <div style="font-size:15px;font-weight:600;color:var(--c1);line-height:1.6;margin-bottom:10px">
+      "Pagamos $463.432 à Shipoffers em 60 dias, sendo $176.059 exclusivamente pelo BreathEaseX. O mesmo período em que o volume de BEX cresceu 7.041%, os casos de produto chegando defeituoso cresceram 1.817%. Produtos de cápsula, operados pelos mesmos serviços, não apresentaram crescimento equivalente. A diferença é o produto líquido — cujo packing é responsabilidade exclusiva e contratual da Shipoffers (Appendix A §2C). Eles assinaram que fariam 'all packing functions.' Eles falharam. O custo é deles."
+    </div>
+    <div style="font-size:11.5px;color:var(--text3)">Baseado em: Shipoffers Fulfillment Agreement (Doc Ref LVGVS-FVMMY-YJR4Y-JWGNK, 07/01/2026) · Refund_2_meses.xlsx · Chargeback_2_meses.xlsx · SALESBOUND_LAST_60_DAYS.xlsx</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const isDark=matchMedia('(prefers-color-scheme:dark)').matches;
+const tc=isDark?'#B4B2A9':'#5F5E5A';
+const gc=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.05)';
+function goTo(idx){
+  document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===idx));
+}
+
+const weeks=['27/04','04/05','11/05','18/05','25/05','01/06','08/06','15/06'];
+const bexData=[0,1355.98,2569.81,3172.71,7974.08,24060.60,40113.48,96812.56];
+const othersData=[41370.30,37444.04-1355.98,45164.90-2569.81,40153.17-3172.71,37396.28-7974.08,60621.02-24060.60,73430.47-40113.48,127851.82-96812.56];
+
+new Chart(document.getElementById('spendChart'),{
+  type:'bar',
+  data:{
+    labels:weeks,
+    datasets:[
+      {label:'BreathEaseX',data:bexData,backgroundColor:'rgba(226,75,74,0.85)',borderWidth:0,borderRadius:3,order:1},
+      {label:'Outros',data:othersData,backgroundColor:'rgba(181,212,244,0.75)',borderWidth:0,borderRadius:3,order:2}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:c=>`${c.dataset.label}: $${c.raw.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})}`}}},
+    scales:{
+      x:{stacked:true,ticks:{color:tc,font:{size:9}},grid:{display:false}},
+      y:{stacked:true,ticks:{color:tc,font:{size:9},callback:v=>'$'+(v/1000).toFixed(0)+'k'},grid:{color:gc}}
+    }
+  }
+});
+
+// Defective comparison
+new Chart(document.getElementById('defectChart'),{
+  type:'bar',
+  data:{
+    labels:['Abril','Maio','Junho'],
+    datasets:[
+      {label:'BEX (líquido) — defeituoso',data:[0,294,5636],backgroundColor:'rgba(226,75,74,0.85)',borderWidth:0,borderRadius:3},
+      {label:'Cápsulas — defeituoso',data:[0,0,0],backgroundColor:'rgba(29,158,117,0.7)',borderWidth:0,borderRadius:3}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: $${c.raw.toLocaleString()}`}}},
+    scales:{
+      x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},
+      y:{ticks:{color:tc,font:{size:9},callback:v=>'$'+v.toLocaleString()},grid:{color:gc}}
+    }
+  }
+});
+
+// Timeline with defects overlay
+new Chart(document.getElementById('timelineDefChart'),{
+  type:'bar',
+  data:{
+    labels:['27/04','04/05','11/05','18/05','25/05','01/06','08/06','15/06'],
+    datasets:[
+      {label:'Gasto BEX (÷10)',type:'bar',data:[0,136,257,317,797,2406,4011,9681],backgroundColor:'rgba(55,138,221,0.3)',borderRadius:3,yAxisID:'y'},
+      {label:'BEX "defeituoso"',type:'line',data:[0,0,0,50,98,186,412,1200],borderColor:'#E24B4A',backgroundColor:'rgba(226,75,74,0.1)',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#E24B4A',yAxisID:'y'},
+      {label:'Cápsula "defeituoso"',type:'line',data:[0,0,0,0,0,0,0,0],borderColor:'#1D9E75',backgroundColor:'transparent',tension:.4,pointRadius:4,pointBackgroundColor:'#1D9E75',yAxisID:'y'}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
+    scales:{
+      x:{ticks:{color:tc,font:{size:9}},grid:{display:false}},
+      y:{ticks:{color:tc,font:{size:8},callback:v=>'$'+v},grid:{color:gc}}
+    }
+  }
+});
+
+// Contract timeline
+new Chart(document.getElementById('contractChart'),{
+  type:'bar',
+  data:{
+    labels:['Jan','Fev','Mar','Abr','Mai','Jun'],
+    datasets:[
+      {label:'Gasto total Shipoffers ($k)',data:[0,0,0,41,201,262],backgroundColor:['rgba(136,135,128,0.3)','rgba(136,135,128,0.3)','rgba(136,135,128,0.3)','rgba(136,135,128,0.5)','rgba(239,159,39,0.6)','rgba(226,75,74,0.8)'],borderWidth:0,borderRadius:3}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},annotation:{annotations:{}}},
+    scales:{
+      x:{ticks:{color:tc,font:{size:10}},grid:{display:false}},
+      y:{ticks:{color:tc,font:{size:8},callback:v=>'$'+v+'k'},grid:{color:gc}}
+    }
+  }
+});
+</script>
+</body>
+</html>
